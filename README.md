@@ -2,6 +2,8 @@
 
 A comprehensive UI-only web prototype for Adobe's Experimentation Platform Dashboard, designed to provide actionable insights into experimentation velocity, team performance, quality metrics, and business impact.
 
+**🌐 Live Demo:** [https://acrijman-sudo.github.io/Experimentation-Platform-Dashboard/](https://acrijman-sudo.github.io/Experimentation-Platform-Dashboard/)
+
 ![Dashboard Preview](https://img.shields.io/badge/Status-Prototype-blue)
 ![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
 ![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?logo=vite)
@@ -145,6 +147,15 @@ npm run build
 ```
 
 The optimized production build will be in the `dist/` directory.
+
+### Deploy to GitHub Pages
+
+```bash
+npm run deploy
+```
+
+This will build the project and deploy it to GitHub Pages. The live site will be available at:
+**[https://acrijman-sudo.github.io/Experimentation-Platform-Dashboard/](https://acrijman-sudo.github.io/Experimentation-Platform-Dashboard/)**
 
 ## 📁 Project Structure
 
