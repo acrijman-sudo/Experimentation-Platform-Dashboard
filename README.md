@@ -146,16 +146,23 @@ The dashboard will be available at `http://localhost:5173/`
 npm run build
 ```
 
-The optimized production build will be in the `dist/` directory.
+The optimized production build will be in the `docs/` directory.
 
 ### Deploy to GitHub Pages
 
-```bash
-npm run deploy
-```
+The site is configured to deploy from the `/docs` folder on the `main` branch.
 
-This will build the project and deploy it to GitHub Pages. The live site will be available at:
+**To update the live site:**
+1. Build the project: `npm run build`
+2. Commit and push changes: `git add docs/ && git commit -m "Update site" && git push`
+
+The live site will be available at:
 **[https://acrijman-sudo.github.io/Experimentation-Platform-Dashboard/](https://acrijman-sudo.github.io/Experimentation-Platform-Dashboard/)**
+
+**GitHub Pages Configuration:**
+- Source: Deploy from a branch
+- Branch: `main`
+- Folder: `/docs`
 
 ## 📁 Project Structure
 
