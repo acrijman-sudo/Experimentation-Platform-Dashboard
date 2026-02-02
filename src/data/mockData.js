@@ -688,12 +688,12 @@ export const getDataForPeriod = (timeRange, filters = { teams: [], teamCategory:
         ]
       : timeRange === 'YTD'
       ? [
-          { month: 'Sep', jiraCreated: 32, hzCreated: 22, hzCompleted: 16, hzWin: 7, jiraRollout: 5 },
-          { month: 'Oct', jiraCreated: 40, hzCreated: 28, hzCompleted: 21, hzWin: 9, jiraRollout: 7 },
-          { month: 'Nov', jiraCreated: 48, hzCreated: 35, hzCompleted: 28, hzWin: 12, jiraRollout: 9 },
           { month: 'Dec', jiraCreated: 44, hzCreated: 31, hzCompleted: 25, hzWin: 10, jiraRollout: 8 },
           { month: 'Jan', jiraCreated: 55, hzCreated: 42, hzCompleted: 32, hzWin: 14, jiraRollout: 11 },
           { month: 'Feb', jiraCreated: 52, hzCreated: 38, hzCompleted: 30, hzWin: 13, jiraRollout: 10 },
+          { month: 'Mar', jiraCreated: 58, hzCreated: 45, hzCompleted: 35, hzWin: 15, jiraRollout: 12 },
+          { month: 'Apr', jiraCreated: 62, hzCreated: 48, hzCompleted: 38, hzWin: 16, jiraRollout: 13 },
+          { month: 'May', jiraCreated: 66, hzCreated: 52, hzCompleted: 42, hzWin: 18, jiraRollout: 14 },
         ]
       : [ // 2025 full year
           { month: 'Jan', jiraCreated: 30, hzCreated: 20, hzCompleted: 15, hzWin: 6, jiraRollout: 4 },
