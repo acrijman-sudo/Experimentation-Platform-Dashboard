@@ -44,7 +44,7 @@ const todayActivity = [
   { time: '8 hours ago', action: 'Reached significance', experiment: 'Quick Actions CTA', team: 'Growth' },
 ];
 
-const StatusTab = () => {
+const StatusTab = ({ timeRange = 'FY Q2', filters = { teams: [], teamCategory: 'All', tenant: 'All' } }) => {
   const totalExperiments = statusSnapshot.reduce((sum, s) => sum + s.value, 0);
   const now = new Date();
   const formattedDate = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });

@@ -1,396 +1,556 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Users, UserPlus, Activity, Lightbulb, Trophy, Target, CheckCircle } from 'lucide-react';
+import { Users, UserPlus, Activity, Lightbulb, Trophy, Target, CheckCircle, MoreVertical, X } from 'lucide-react';
 import MetricCard from '../MetricCard';
-import { teamPerformance, segmentUsage, topPerformers, teamTestCoverage, experimentationRate, teamWorkload } from '../../data/mockData';
+import { segmentUsage, featureUsage, productAreaUsage, surfaceAreaUsage, experimentationRate, teamSpecificUsage, getDataForPeriod } from '../../data/mockData';
 
-const TeamsTab = () => {
+const TeamsTab = ({ timeRange = 'FY Q2', filters = { teams: [], teamCategory: 'All', tenant: 'All' } }) => {
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedTeamForCharts, setSelectedTeamForCharts] = useState(null);
+  
+  // Get period-adjusted and filtered data
+  const periodData = getDataForPeriod(timeRange, filters);
+  const teamPerformance = periodData.teamPerformance;
+  const topPerformers = periodData.topPerformers;
+  const metrics = periodData.metrics;
+
+  // Get data based on selected team or show all
+  const getDisplayData = () => {
+    if (selectedTeamForCharts && teamSpecificUsage[selectedTeamForCharts]) {
+      return teamSpecificUsage[selectedTeamForCharts];
+    }
+    return {
+      segmentation: segmentUsage,
+      features: featureUsage,
+      productArea: productAreaUsage,
+      surfaceArea: surfaceAreaUsage,
+    };
+  };
+
+  const displayData = getDisplayData();
+
   return (
-    <div className="space-y-8">
-      {/* HERO CARDS - Team metrics with blue background */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title="Team Penetration Rate"
-          value="75%"
-          change="+18% vs last quarter"
-          changeType="positive"
-          icon={Users}
-          subtitle="27/36 teams experimenting"
-          variant="blue"
-        />
-        <MetricCard
-          title="New Teams"
-          value="2"
-          change="+2 from last quarter"
-          changeType="positive"
-          icon={UserPlus}
-          subtitle="This quarter"
-          variant="blue"
-        />
-        <MetricCard
-          title="Active Teams"
-          value="27"
-          change="+5 vs last quarter"
-          changeType="positive"
-          icon={Activity}
-          subtitle="Running experiments"
-          variant="blue"
-        />
-        <MetricCard
-          title="Avg Experiments/Team"
-          value="5.8"
-          change="+1.2 vs last quarter"
-          changeType="positive"
-          icon={Activity}
-          subtitle="Per active team"
-          variant="blue"
-        />
-      </div>
-
-      {/* EXPERIMENTATION RATE CARD */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 shadow-lg text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="w-6 h-6" />
-              <h3 className="text-lg font-semibold uppercase tracking-wide">Experimentation Rate</h3>
-            </div>
-            <p className="text-5xl font-bold mt-2">{experimentationRate.current}%</p>
-            <p className="text-blue-100 mt-2">
-              {experimentationRate.totalExperiments} experiments / {experimentationRate.totalUserFacingIssues} user-facing issues
-            </p>
-            <div className="flex items-center gap-4 mt-4">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-emerald-300" />
-                <span className="text-sm">+{experimentationRate.change}% vs Q3</span>
-              </div>
-              <div className="px-3 py-1 bg-white/20 rounded-full text-sm">
-                Target: {experimentationRate.target}%
-              </div>
-            </div>
+    <div className="space-y-8 relative">
+      {/* HERO SECTION - Hero Cards + Top Performers */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* LEFT: HERO CARDS - Team metrics (60%) */}
+        <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MetricCard
+              title="Avg Experiments/Team"
+              value={metrics.avgExperimentsPerTeam.toString()}
+              change="+1.2 vs last quarter"
+              changeType="positive"
+              icon={Activity}
+              subtitle="Per active team"
+              variant="blue"
+            />
+            <MetricCard
+              title="Active Teams"
+              value={metrics.activeTeams.toString()}
+              change="+5 vs last quarter"
+              changeType="positive"
+              icon={Activity}
+              subtitle={`${metrics.newTeams} New / ${metrics.activeTeams - metrics.newTeams} Returning`}
+              variant="blue"
+            />
+            <MetricCard
+              title="Team Penetration Rate"
+              value={`${metrics.teamPenetration}%`}
+              change="+18% vs last quarter"
+              changeType="positive"
+              icon={Users}
+              subtitle={`${metrics.activeTeams}/36 teams experimenting`}
+              variant="blue"
+            />
+            <MetricCard
+              title="Experimentation Rate"
+              value={`${metrics.experimentationRate}%`}
+              change={`+${experimentationRate.change}% vs last quarter`}
+              changeType="positive"
+              icon={Target}
+              subtitle={`${experimentationRate.totalExperiments} / ${experimentationRate.totalUserFacingIssues} user-facing issues`}
+              variant="blue"
+            />
+            <MetricCard
+              title="Top Segmentation Used"
+              value={segmentUsage[0].segment}
+              change={`${segmentUsage[0].count} experiments`}
+              changeType="positive"
+              icon={Target}
+              subtitle={`${segmentUsage[0].percentage}% usage rate`}
+              variant="blue"
+            />
+            <MetricCard
+              title="Top Feature Used"
+              value={featureUsage[0].feature}
+              change={`${featureUsage[0].count} experiments`}
+              changeType="positive"
+              icon={Activity}
+              subtitle={`${featureUsage[0].percentage}% usage rate`}
+              variant="blue"
+            />
           </div>
-          <div className="text-right">
-            <div className="text-6xl font-bold opacity-20">🎯</div>
+        </div>
+
+        {/* RIGHT: TOP PERFORMERS (40%) */}
+        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2 mb-6">
+            <Trophy className="w-5 h-5 text-yellow-500" />
+            <h3 className="text-lg font-semibold text-gray-900">Top Performers</h3>
+          </div>
+          <div className="space-y-3">
+            {topPerformers.length > 0 ? (
+              topPerformers.map((team) => (
+                <div 
+                  key={team.rank} 
+                  className={`rounded-lg p-4 border flex items-center gap-4 ${
+                    team.rank === 1 ? 'bg-yellow-50 border-yellow-200' :
+                    team.rank === 2 ? 'bg-gray-50 border-gray-200' :
+                    team.rank === 3 ? 'bg-orange-50 border-orange-200' :
+                    'bg-blue-50 border-blue-200'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 ${
+                    team.rank === 1 ? 'bg-yellow-500' :
+                    team.rank === 2 ? 'bg-gray-400' :
+                    team.rank === 3 ? 'bg-orange-400' :
+                    'bg-blue-500'
+                  }`}>
+                    {team.rank}
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-base font-semibold text-gray-900">{team.team}</span>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Experiments</p>
+                      <p className="text-lg font-bold text-gray-900">{team.experiments}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Win Rate</p>
+                      <p className="text-lg font-bold text-emerald-600">{team.winRate}%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Avg Lift</p>
+                      <p className="text-lg font-bold text-emerald-600">+{team.avgLift}%</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-sm">No teams match the current filters</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* TEAM PERFORMANCE COMPARISON TABLE with TEST COVERAGE */}
+      {/* TEAM PERFORMANCE TABLE */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Team Performance Comparison</h3>
-        <div className="overflow-x-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Team Performance</h3>
+          {selectedTeamForCharts && (
+            <button
+              onClick={() => setSelectedTeamForCharts(null)}
+              className="px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+            >
+              Clear Filter
+            </button>
+          )}
+        </div>
+        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experiments</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User-Facing Issues</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test Coverage</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experimentation Rate</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win Rate</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Lift</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Learning</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Learnings</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {teamTestCoverage.map((team) => {
-                const perfData = teamPerformance.find(t => t.team === team.team) || {};
-                return (
-                  <tr key={team.team} className="hover:bg-gray-50 cursor-pointer">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-gray-900">{team.team}</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{team.experiments}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{team.userFacingIssues}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${
-                              team.testCoverage >= 50 ? 'bg-emerald-500' :
-                              team.testCoverage >= 30 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`}
-                            style={{ width: `${team.testCoverage}%` }}
-                          />
-                        </div>
-                        <span className={`text-sm font-medium ${
-                          team.testCoverage >= 50 ? 'text-emerald-600' :
-                          team.testCoverage >= 30 ? 'text-yellow-600' :
-                          'text-red-600'
-                        }`}>
-                          {team.testCoverage}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-[#4169E1] h-2 rounded-full" 
-                            style={{ width: `${perfData.winRate || 0}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900">{perfData.winRate || 0}%</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-emerald-600">+{perfData.avgLift || 0}%</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <Lightbulb className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm font-medium text-gray-900">{perfData.learnings || 0}</span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* TEST COVERAGE INSIGHTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Test Coverage by Team - Horizontal Bar Chart (2/3) */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Test Coverage by Team</h3>
-            <p className="text-sm text-gray-500">Percentage of user-facing work validated through experiments</p>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={teamTestCoverage} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
-              <XAxis type="number" stroke="#9CA3AF" fontSize={12} domain={[0, 100]} unit="%" />
-              <YAxis type="category" dataKey="team" stroke="#9CA3AF" fontSize={12} width={120} />
-              <Tooltip formatter={(value) => `${value}%`} />
-              <Bar dataKey="testCoverage" radius={[0, 4, 4, 0]} name="Test Coverage">
-                {teamTestCoverage.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={
-                      entry.testCoverage >= 50 ? '#10B981' :
-                      entry.testCoverage >= 30 ? '#F59E0B' :
-                      '#EF4444'
-                    } 
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="flex items-center gap-4 mt-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-emerald-500" />
-              <span className="text-gray-600">High (≥50%)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-yellow-500" />
-              <span className="text-gray-600">Medium (30-49%)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-red-500" />
-              <span className="text-gray-600">Low (&lt;30%)</span>
-            </div>
-            <div className="ml-auto text-gray-500">Org Avg: {experimentationRate.current}%</div>
-          </div>
-        </div>
-
-        {/* Test Coverage Distribution - Donut (1/3) */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Coverage Distribution</h3>
-            <p className="text-sm text-gray-500">Teams by coverage level</p>
-          </div>
-          <div className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'High (≥50%)', value: teamTestCoverage.filter(t => t.testCoverage >= 50).length, color: '#10B981' },
-                    { name: 'Medium (30-49%)', value: teamTestCoverage.filter(t => t.testCoverage >= 30 && t.testCoverage < 50).length, color: '#F59E0B' },
-                    { name: 'Low (<30%)', value: teamTestCoverage.filter(t => t.testCoverage < 30).length, color: '#EF4444' },
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={70}
-                  paddingAngle={2}
-                  dataKey="value"
+              {teamPerformance.length > 0 ? teamPerformance.map((team) => (
+                <tr 
+                  key={team.team} 
+                  onClick={() => setSelectedTeamForCharts(team.team)}
+                  className={`cursor-pointer transition-colors ${
+                    selectedTeamForCharts === team.team 
+                      ? 'bg-blue-50 hover:bg-blue-100' 
+                      : 'hover:bg-gray-50'
+                  }`}
                 >
-                  {[
-                    { color: '#10B981' },
-                    { color: '#F59E0B' },
-                    { color: '#EF4444' },
-                  ].map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-2 mt-4">
-            <div className="flex justify-between items-center text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-gray-600">High</span>
-              </div>
-              <span className="font-medium text-gray-900">
-                {teamTestCoverage.filter(t => t.testCoverage >= 50).length} teams
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <span className="text-gray-600">Medium</span>
-              </div>
-              <span className="font-medium text-gray-900">
-                {teamTestCoverage.filter(t => t.testCoverage >= 30 && t.testCoverage < 50).length} teams
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span className="text-gray-600">Low</span>
-              </div>
-              <span className="font-medium text-gray-900">
-                {teamTestCoverage.filter(t => t.testCoverage < 30).length} teams
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CURRENT TEAM WORKLOAD */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Current Team Workload</h3>
-          </div>
-          <p className="text-sm text-gray-500 mt-1">Real-time capacity and active experiments per team</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Team</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Active</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Scheduled</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Capacity</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {teamWorkload.map((team) => (
-                <tr key={team.team} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{team.team}</td>
-                  <td className="px-6 py-4 text-center text-sm text-gray-600">{team.active}</td>
-                  <td className="px-6 py-4 text-center text-sm text-gray-600">{team.scheduled}</td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      team.capacity === 'High' ? 'bg-red-100 text-red-700' :
-                      team.capacity === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-medium text-gray-900">{team.team}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{team.experiments}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            team.experimentationRate >= 50 ? 'bg-emerald-500' :
+                            team.experimentationRate >= 30 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}
+                          style={{ width: `${team.experimentationRate}%` }}
+                        />
+                      </div>
+                      <span className={`text-sm font-medium ${
+                        team.experimentationRate >= 50 ? 'text-emerald-600' :
+                        team.experimentationRate >= 30 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {team.experimentationRate}%
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-[#4169E1] h-2 rounded-full" 
+                          style={{ width: `${team.winRate}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{team.winRate}%</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-medium text-emerald-600">+{team.avgLift}%</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1">
+                      <Lightbulb className="w-4 h-4 text-yellow-500" />
+                      <span className="text-sm font-medium text-gray-900">{team.learnings}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      team.teamType === 'New' ? 'bg-blue-100 text-blue-700' :
+                      team.teamType === 'Returning' ? 'bg-green-100 text-green-700' :
+                      team.teamType === 'Churned' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
                     }`}>
-                      {team.capacity}
+                      {team.teamType}
                     </span>
                   </td>
+                  <td className="px-6 py-4 text-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTeam(team);
+                      }}
+                      className="p-1 hover:bg-gray-200 rounded transition-colors"
+                      title="View details"
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-600" />
+                    </button>
+                  </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="8" className="px-6 py-12 text-center">
+                    <div className="text-gray-500">
+                      <p className="text-sm font-medium">No teams match the current filters</p>
+                      <p className="text-xs mt-1">Try adjusting your filter criteria</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* FEATURE USAGE - Horizontal Bar Chart (Purple bars per PDF) */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Segmentation Usage</h3>
-          <p className="text-sm text-gray-500">How teams are leveraging targeting capabilities</p>
-        </div>
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart data={segmentUsage} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
-            <XAxis type="number" stroke="#9CA3AF" fontSize={12} domain={[0, 70]} />
-            <YAxis type="category" dataKey="segment" stroke="#9CA3AF" fontSize={12} width={120} />
-            <Tooltip />
-            <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} name="Experiments" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      {/* SIDE PANEL - Team Details */}
+      {selectedTeam && (
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-30 z-40"
+            onClick={() => setSelectedTeam(null)}
+          />
+          
+          {/* Side Panel */}
+          <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{selectedTeam.team}</h2>
+                  <p className="text-sm text-gray-500 mt-1">Team Details</p>
+                </div>
+                <button
+                  onClick={() => setSelectedTeam(null)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
 
-      {/* TOP PERFORMERS - Card-based layout */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="flex items-center gap-2 mb-6">
-          <Trophy className="w-5 h-5 text-yellow-500" />
-          <h3 className="text-lg font-semibold text-gray-900">Top Performers</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {topPerformers.map((team) => (
-            <div 
-              key={team.rank} 
-              className={`rounded-xl p-6 border ${
-                team.rank === 1 ? 'bg-yellow-50 border-yellow-200' :
-                team.rank === 2 ? 'bg-gray-50 border-gray-200' :
-                'bg-orange-50 border-orange-200'
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                  team.rank === 1 ? 'bg-yellow-500' :
-                  team.rank === 2 ? 'bg-gray-400' :
-                  'bg-orange-400'
+              {/* Team Type Badge */}
+              <div className="mb-6">
+                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                  selectedTeam.teamType === 'New' ? 'bg-blue-100 text-blue-700' :
+                  selectedTeam.teamType === 'Returning' ? 'bg-green-100 text-green-700' :
+                  selectedTeam.teamType === 'Churned' ? 'bg-red-100 text-red-700' :
+                  'bg-gray-100 text-gray-700'
                 }`}>
-                  {team.rank}
-                </div>
-                <span className="text-lg font-semibold text-gray-900">{team.team}</span>
+                  {selectedTeam.teamType} Team
+                </span>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Experiments</span>
-                  <span className="text-sm font-medium text-gray-900">{team.experiments}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Win Rate</span>
-                  <span className="text-sm font-medium text-emerald-600">{team.winRate}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Avg Lift</span>
-                  <span className="text-sm font-medium text-emerald-600">+{team.avgLift}%</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* TESTED AREA - Horizontal Bar Chart */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Tested Area</h3>
-          <p className="text-sm text-gray-500">Number of experiments that tested a specific area based on Exposure Event</p>
+              {/* Key Metrics */}
+              <div className="space-y-4 mb-6">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">Experiments</p>
+                  <p className="text-2xl font-bold text-blue-900 mt-1">{selectedTeam.experiments}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-600 font-medium">Win Rate</p>
+                    <p className="text-xl font-bold text-gray-900 mt-1">{selectedTeam.winRate}%</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-600 font-medium">Avg. Lift</p>
+                    <p className="text-xl font-bold text-emerald-600 mt-1">+{selectedTeam.avgLift}%</p>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 rounded-lg p-4">
+                  <p className="text-xs text-yellow-700 font-medium">Learnings Captured</p>
+                  <p className="text-2xl font-bold text-yellow-900 mt-1">{selectedTeam.learnings}</p>
+                </div>
+              </div>
+
+              {/* Platform Usage Details */}
+              {teamSpecificUsage[selectedTeam.team] ? (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Platform Usage</h3>
+                  
+                  {/* Top Segmentation */}
+                  {teamSpecificUsage[selectedTeam.team].segmentation[0] && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <p className="text-xs text-gray-500 mb-1">Top Segmentation</p>
+                      <p className="text-lg font-bold text-gray-900">{teamSpecificUsage[selectedTeam.team].segmentation[0].segment}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {teamSpecificUsage[selectedTeam.team].segmentation[0].count} experiments • {teamSpecificUsage[selectedTeam.team].segmentation[0].percentage}% usage
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Top Feature */}
+                  {teamSpecificUsage[selectedTeam.team].features[0] && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <p className="text-xs text-gray-500 mb-1">Top Feature</p>
+                      <p className="text-lg font-bold text-gray-900">{teamSpecificUsage[selectedTeam.team].features[0].feature}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {teamSpecificUsage[selectedTeam.team].features[0].count} experiments • {teamSpecificUsage[selectedTeam.team].features[0].percentage}% usage
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Top Exposure Event */}
+                  {teamSpecificUsage[selectedTeam.team].productArea[0] && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <p className="text-xs text-gray-500 mb-1">Top Exposure Event</p>
+                      <p className="text-lg font-bold text-gray-900">{teamSpecificUsage[selectedTeam.team].productArea[0].area}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {teamSpecificUsage[selectedTeam.team].productArea[0].count} experiments • {teamSpecificUsage[selectedTeam.team].productArea[0].percentage}% usage
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Top Surface Area */}
+                  {teamSpecificUsage[selectedTeam.team].surfaceArea[0] && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <p className="text-xs text-gray-500 mb-1">Top Surface Area</p>
+                      <p className="text-lg font-bold text-gray-900">{teamSpecificUsage[selectedTeam.team].surfaceArea[0].surface}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {teamSpecificUsage[selectedTeam.team].surfaceArea[0].count} experiments • {teamSpecificUsage[selectedTeam.team].surfaceArea[0].percentage}% coverage
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <p className="text-sm text-gray-500">No detailed usage data available for this team</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* PLATFORM USAGE CHARTS - 2x2 Grid */}
+      <div className="space-y-6">
+        {selectedTeamForCharts && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">Filtered by Team</p>
+                <p className="text-lg font-bold text-blue-900">{selectedTeamForCharts}</p>
+              </div>
+              <button
+                onClick={() => setSelectedTeamForCharts(null)}
+                className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              >
+                View All Teams
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Segmentation Usage */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Segmentation Usage</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedTeamForCharts 
+                  ? `${selectedTeamForCharts} team targeting capabilities`
+                  : 'How teams are leveraging targeting capabilities'
+                }
+              </p>
+            </div>
+            <div className="p-6">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={displayData.segmentation} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
+                <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+                <YAxis type="category" dataKey="segment" stroke="#9CA3AF" fontSize={12} width={140} />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'count' ? `${value} experiments` : `${value}%`,
+                    name === 'count' ? 'Experiments' : 'Usage'
+                  ]}
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #E5E7EB', 
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Bar dataKey="count" fill="#4169E1" radius={[0, 4, 4, 0]} name="Experiments" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart 
-            data={[
-              { area: 'Homepage', count: 42 },
-              { area: 'Checkout', count: 35 },
-              { area: 'Product Page', count: 28 },
-              { area: 'Navigation', count: 22 },
-              { area: 'Search', count: 18 },
-              { area: 'Profile', count: 12 },
-            ]} 
-            layout="vertical"
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
-            <XAxis type="number" stroke="#9CA3AF" fontSize={12} domain={[0, 50]} />
-            <YAxis type="category" dataKey="area" stroke="#9CA3AF" fontSize={12} width={100} />
-            <Tooltip />
-            <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} name="Experiments" />
-          </BarChart>
-        </ResponsiveContainer>
+
+          {/* Feature Usage */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Feature Usage</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedTeamForCharts 
+                  ? `${selectedTeamForCharts} team platform features`
+                  : 'Platform features utilized by teams'
+                }
+              </p>
+            </div>
+            <div className="p-6">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={displayData.features} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
+                <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+                <YAxis type="category" dataKey="feature" stroke="#9CA3AF" fontSize={12} width={160} />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'count' ? `${value} experiments` : `${value}%`,
+                    name === 'count' ? 'Experiments' : 'Usage'
+                  ]}
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #E5E7EB', 
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Bar dataKey="count" fill="#8B5CF6" radius={[0, 4, 4, 0]} name="Experiments" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+          {/* Product Area (Exposure Events) */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Exposure Events</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedTeamForCharts 
+                  ? `${selectedTeamForCharts} team exposure events`
+                  : 'Experiments by exposure event'
+                }
+              </p>
+            </div>
+            <div className="p-6">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={displayData.productArea} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
+                <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+                <YAxis type="category" dataKey="area" stroke="#9CA3AF" fontSize={12} width={120} />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'count' ? `${value} experiments` : `${value}%`,
+                    name === 'count' ? 'Experiments' : 'Coverage'
+                  ]}
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #E5E7EB', 
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Bar dataKey="count" fill="#F59E0B" radius={[0, 4, 4, 0]} name="Experiments" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+          {/* Surface Area */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Surface Area</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedTeamForCharts 
+                  ? `${selectedTeamForCharts} team platform surfaces`
+                  : 'Experiments by platform surface'
+                }
+              </p>
+            </div>
+            <div className="p-6">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={displayData.surfaceArea} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
+                <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+                <YAxis type="category" dataKey="surface" stroke="#9CA3AF" fontSize={12} width={140} />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'count' ? `${value} experiments` : `${value}%`,
+                    name === 'count' ? 'Experiments' : 'Coverage'
+                  ]}
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #E5E7EB', 
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Bar dataKey="count" fill="#14B8A6" radius={[0, 4, 4, 0]} name="Experiments" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        </div>
       </div>
     </div>
   );

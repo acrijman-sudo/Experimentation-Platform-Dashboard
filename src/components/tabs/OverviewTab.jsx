@@ -6,23 +6,27 @@ import {
 import { Activity, CheckCircle, Users, Lightbulb, TrendingUp, Target, Zap, Clock } from 'lucide-react';
 import MetricCard from '../MetricCard';
 import { 
-  monthlyData, 
   outcomeDistribution, 
   experimentTypeDistribution, 
   platformDistribution, 
   experimentationRate,
   businessImpact,
-  activeRollouts 
+  activeRollouts,
+  getDataForPeriod 
 } from '../../data/mockData';
 
-const OverviewTab = () => {
+const OverviewTab = ({ timeRange = 'FY Q2', filters = { teams: [], teamCategory: 'All', tenant: 'All' } }) => {
+  const periodData = getDataForPeriod(timeRange, filters);
+  const monthlyData = periodData.monthlyData;
+  const metrics = periodData.metrics;
+  
   return (
     <div className="space-y-8">
       {/* HERO CARDS - 6 key metrics (2 rows of 3) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
           title="Total Experiments"
-          value="156"
+          value={metrics.totalExperiments.toString()}
           change="+12% vs last quarter"
           changeType="positive"
           icon={Activity}
@@ -31,7 +35,7 @@ const OverviewTab = () => {
         />
         <MetricCard
           title="Win Rate"
-          value="54%"
+          value={`${metrics.avgWinRate}%`}
           change="+5% vs Q3"
           changeType="positive"
           icon={CheckCircle}
@@ -40,7 +44,7 @@ const OverviewTab = () => {
         />
         <MetricCard
           title="Experimentation Rate"
-          value={`${experimentationRate.current}%`}
+          value={`${metrics.experimentationRate}%`}
           change={`+${experimentationRate.change}% vs Q3`}
           changeType="positive"
           icon={Target}
@@ -52,7 +56,7 @@ const OverviewTab = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
           title="Active Teams"
-          value="27"
+          value={metrics.activeTeams.toString()}
           change="+2 new teams"
           changeType="positive"
           icon={Users}
@@ -61,7 +65,7 @@ const OverviewTab = () => {
         />
         <MetricCard
           title="Learnings Captured"
-          value="38"
+          value={metrics.documentedLearnings.toString()}
           change="+6 this quarter"
           changeType="positive"
           icon={Lightbulb}

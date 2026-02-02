@@ -9,24 +9,29 @@ import LearningsTab from './components/tabs/LearningsTab';
 
 function App() {
   const [activeTab, setActiveTab] = useState('status');
-  const [timeRange] = useState('FY Q4 [2024]');
+  const [timeRange, setTimeRange] = useState('FY Q2');
+  const [filters, setFilters] = useState({
+    teams: [],
+    teamCategory: 'All',
+    tenant: 'All',
+  });
 
   const renderTab = () => {
     switch (activeTab) {
       case 'status':
-        return <StatusTab />;
+        return <StatusTab timeRange={timeRange} filters={filters} />;
       case 'overview':
-        return <OverviewTab />;
+        return <OverviewTab timeRange={timeRange} filters={filters} />;
       case 'velocity':
-        return <VelocityTab />;
+        return <VelocityTab timeRange={timeRange} filters={filters} />;
       case 'teams':
-        return <TeamsTab />;
+        return <TeamsTab timeRange={timeRange} filters={filters} />;
       case 'learnings':
-        return <LearningsTab />;
+        return <LearningsTab timeRange={timeRange} filters={filters} />;
       case 'quality':
-        return <QualityTab />;
+        return <QualityTab timeRange={timeRange} filters={filters} />;
       default:
-        return <StatusTab />;
+        return <StatusTab timeRange={timeRange} filters={filters} />;
     }
   };
 
@@ -36,6 +41,9 @@ function App() {
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         timeRange={timeRange}
+        setTimeRange={setTimeRange}
+        filters={filters}
+        setFilters={setFilters}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-8">

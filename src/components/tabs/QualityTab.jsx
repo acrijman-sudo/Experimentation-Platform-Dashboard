@@ -34,7 +34,7 @@ const invalidRateByTeam = [
   { team: 'Squirrel', rate: 0.8 },
 ];
 
-const QualityTab = () => {
+const QualityTab = ({ timeRange = 'FY Q2', filters = { teams: [], teamCategory: 'All', tenant: 'All' } }) => {
   return (
     <div className="space-y-8">
       {/* HERO CARDS - Quality metrics with blue background */}

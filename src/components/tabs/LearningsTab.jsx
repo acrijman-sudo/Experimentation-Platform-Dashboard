@@ -3,7 +3,7 @@ import { Lightbulb, BookOpen, BarChart3 } from 'lucide-react';
 import MetricCard from '../MetricCard';
 import { learningCategories, recentLearnings, learningsData } from '../../data/mockData';
 
-const LearningsTab = () => {
+const LearningsTab = ({ timeRange = 'FY Q2', filters = { teams: [], teamCategory: 'All', tenant: 'All' } }) => {
   return (
     <div className="space-y-8">
       {/* HERO CARDS - Learnings metrics with blue background */}
