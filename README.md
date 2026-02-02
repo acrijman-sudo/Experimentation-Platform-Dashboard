@@ -45,7 +45,7 @@ Deep dive into process performance and bottlenecks:
 - Active Cycle Time Outliers
 - Closed Cycle Time Outliers with bottleneck identification
 
-### 4. **Team Adoption & Performance**
+### 4. **Team & Platform Adoption**
 **Target Personas:** Feature Directors, Directors, EPM, VP
 
 Team-level performance tracking and comparison:
@@ -174,7 +174,7 @@ experimentation-dashboard/
 │   │   │   ├── StatusTab.jsx        # Control Center
 │   │   │   ├── OverviewTab.jsx      # Platform Overview
 │   │   │   ├── VelocityTab.jsx      # Process Efficiency
-│   │   │   ├── TeamsTab.jsx         # Team Adoption & Performance
+│   │   │   ├── TeamsTab.jsx         # Team & Platform Adoption
 │   │   │   ├── LearningsTab.jsx     # Knowledge Repository
 │   │   │   └── QualityTab.jsx       # Platform Health
 │   │   ├── Header.jsx               # Navigation header

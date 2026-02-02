@@ -10,7 +10,7 @@ const Header = ({ activeTab, setActiveTab, timeRange, setTimeRange, filters, set
     { id: 'status', label: 'Control Center' },
     { id: 'overview', label: 'Platform Overview' },
     { id: 'velocity', label: 'Process Efficiency' },
-    { id: 'teams', label: 'Team Adoption & Performance' },
+    { id: 'teams', label: 'Team & Platform Adoption' },
     { id: 'learnings', label: 'Knowledge Repository' },
     { id: 'quality', label: 'Platform Health' },
   ];
